@@ -7,5 +7,5 @@
 
 commbase-stt-vosk-p is an ASR (Automatic Speech Recognition) engine. It is capable of converting spoken language into written text without requiring an internet connection, making it a reliable and secure solution for any application that needs speech-to-text functionality.
 
-<img alt="commbase-stt-vosk-p" src="commbase-stt-vosk-p.png?raw=true" width="550" height="291" />
+<img alt="commbase-stt-vosk-p" src="commbase-stt-vosk-p.jpg?raw=true" width="512" height="512" />
 

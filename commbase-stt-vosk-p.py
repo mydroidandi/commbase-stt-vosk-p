@@ -46,8 +46,13 @@ import sys
 import subprocess
 import string
 import json
+<<<<<<< HEAD
+from functions import read_plain_text_file, load_config_file
+from terminal_colors import get_terminal_colors, get_chat_participant_colors, get_assistant_avatar_color, set_end_user_background_color, set_assistant_user_background_color, set_system_user_background_color, set_end_user_text_color, set_assistant_user_text_color, set_system_user_text_color, set_assistant_avatar_color
+=======
 from functions import read_plain_text_file
 from terminal_colors import get_terminal_colors, get_chat_participant_colors, get_assistant_avatar_color
+>>>>>>> b9b228f5e3f39bed4aadf53110de4537bbd6187d
 
 
 def commbase_stt_vosk_p():
@@ -55,6 +60,8 @@ def commbase_stt_vosk_p():
 	Takes audio input, processes it, and outputs the recognized text. The 
 	recognized text is then cleaned up, and saved in files.
 	"""
+<<<<<<< HEAD
+=======
 
 	def display_assistant_avatar():
 		"""
@@ -109,6 +116,7 @@ def commbase_stt_vosk_p():
 		assistant_avatar = read_plain_text_file(file_path)
 		print(f'\033[{avatar_color_start}\033[{assistant_avatar}\033[{color_code_end}')
 	
+>>>>>>> b9b228f5e3f39bed4aadf53110de4537bbd6187d
 
 	def get_chat_participant_names():
 		""" 
@@ -123,16 +131,13 @@ def commbase_stt_vosk_p():
 				tuple or None: A tuple containing the assistant, system, and end user
 				names in the chat pane, or None, if any of the variables are not found.
 		"""
-		# Specify the path of the env file containing the variables
-		file_path = os.environ["COMMBASE_APP_DIR"] + '/config/app.conf'
-
 		# Initialize variables for the chat names
 		assistant_name = None
 		system_name = None
 		end_user_name = None
 
 		# Open the file and read its contents
-		with open(file_path, 'r') as f:
+		with open(CONFIG_FILE_PATH, 'r') as f:
 			for line in f:
 				# Split the line into variable name and value
 				variable_name, value = line.strip().split('=')
@@ -166,14 +171,21 @@ def commbase_stt_vosk_p():
         str or None: The TTS engine string if found in the configuration file,
         otherwise None.
     """
+<<<<<<< HEAD
+=======
 		# Specify the path of the env file containing the variable
 		file_path = os.environ["COMMBASE_APP_DIR"] + '/config/app.conf'
 
+>>>>>>> b9b228f5e3f39bed4aadf53110de4537bbd6187d
 		# Initialize variable for the tts engine string
 		tts_engine_str = None
 
 		# Open the file and read its contents
+<<<<<<< HEAD
+		with open(CONFIG_FILE_PATH, 'r') as f:
+=======
 		with open(file_path, 'r') as f:
+>>>>>>> b9b228f5e3f39bed4aadf53110de4537bbd6187d
 			for line in f:
 				# Split the line into variable name and value
 				variable_name, value = line.strip().split('=')
@@ -312,123 +324,6 @@ def commbase_stt_vosk_p():
 		Returns:
 		    None.
 		"""
-		# Assign the values returned by get_terminal_colors()
-		red_background_color_code_start, green_background_color_code_start, yellow_background_color_code_start, blue_background_color_code_start, magenta_background_color_code_start, cyan_background_color_code_start, white_background_color_code_start, black_background_color_code_start, red_text_color_code_start, green_text_color_code_start, yellow_text_color_code_start, blue_text_color_code_start, magenta_text_color_code_start, cyan_text_color_code_start, white_text_color_code_start, black_text_color_code_start, color_code_end = get_terminal_colors()
-
-		# Assign the values returned by get_chat_participant_colors()
-		end_user_background_color, assistant_background_color, system_background_color, end_user_text_color, assistant_text_color, system_text_color = get_chat_participant_colors()
-
-		# Assign the values returned by get_chat_participant_names()
-		end_user_name, assistant_name, system_name = get_chat_participant_names()
-
-		# Set the END USER user background color
-		if end_user_background_color == 'red':
-		  end_user_background_color_start = red_background_color_code_start
-		elif end_user_background_color == 'green':
-		  end_user_background_color_start = green_background_color_code_start
-		elif end_user_background_color == 'yellow':
-			end_user_background_color_start = yellow_background_color_code_start
-		elif end_user_background_color == 'blue':
-		  end_user_background_color_start = blue_background_color_code_start
-		elif end_user_background_color == 'magenta':
-		  end_user_background_color_start = magenta_background_color_code_start
-		elif end_user_background_color == 'cyan':
-		  end_user_background_color_start = cyan_background_color_code_start
-		elif end_user_background_color == 'white':
-		  end_user_background_color_start = white_background_color_code_start
-		elif end_user_background_color == 'black':
-		  end_user_background_color_start = black_background_color_code_start
-
-		# Set the ASSISTANT user background color
-		if assistant_background_color == 'red':
-		  assistant_background_color_start = red_background_color_code_start
-		elif assistant_background_color == 'green':
-		  assistant_background_color_start = green_background_color_code_start
-		elif assistant_background_color == 'yellow':
-			assistant_background_color_start = yellow_background_color_code_start
-		elif assistant_background_color == 'blue':
-		  assistant_background_color_start = blue_background_color_code_start
-		elif assistant_background_color == 'magenta':
-		  assistant_background_color_start = magenta_background_color_code_start
-		elif assistant_background_color == 'cyan':
-		  assistant_background_color_start = cyan_background_color_code_start
-		elif assistant_background_color == 'white':
-		  assistant_background_color_start = white_background_color_code_start
-		elif assistant_background_color == 'black':
-		  assistant_background_color_start = black_background_color_code_start
-
-		# Set the SYSTEM user background color
-		if system_background_color == 'red':
-		  system_background_color_start = red_background_color_code_start
-		elif system_background_color == 'green':
-		  system_background_color_start = green_background_color_code_start
-		elif system_background_color == 'yellow':
-			system_background_color_start = yellow_background_color_code_start
-		elif system_background_color == 'blue':
-		  system_background_color_start = blue_background_color_code_start
-		elif system_background_color == 'magenta':
-		  system_background_color_start = magenta_background_color_code_start
-		elif system_background_color == 'cyan':
-		  system_background_color_start = cyan_background_color_code_start
-		elif system_background_color == 'white':
-		  system_background_color_start = white_background_color_code_start
-		elif system_background_color == 'black':
-		  system_background_color_start = black_background_color_code_start
-
-		# Set the END USER user text color
-		if end_user_text_color == 'red':
-		  end_user_text_color_start = red_text_color_code_start
-		elif end_user_text_color == 'green':
-		  end_user_text_color_start = green_text_color_code_start
-		elif end_user_text_color == 'yellow':
-			end_user_text_color_start = yellow_text_color_code_start
-		elif end_user_text_color == 'blue':
-		  end_user_text_color_start = blue_text_color_code_start
-		elif end_user_text_color == 'magenta':
-		  end_user_text_color_start = magenta_text_color_code_start
-		elif end_user_text_color == 'cyan':
-		  end_user_text_color_start = cyan_text_color_code_start
-		elif end_user_text_color == 'white':
-		  end_user_text_color_start = white_text_color_code_start
-		elif end_user_text_color == 'black':
-		  end_user_text_color_start = black_text_color_code_start
-
-		# Set the ASSISTANT user text color
-		if assistant_text_color == 'red':
-		  assistant_text_color_start = red_text_color_code_start
-		elif assistant_text_color == 'green':
-		  assistant_text_color_start = green_text_color_code_start
-		elif assistant_text_color == 'yellow':
-			assistant_text_color_start = yellow_text_color_code_start
-		elif assistant_text_color == 'blue':
-		  assistant_text_color_start = blue_text_color_code_start
-		elif assistant_text_color == 'magenta':
-		  assistant_text_color_start = magenta_text_color_code_start
-		elif assistant_text_color == 'cyan':
-		  assistant_text_color_start = cyan_text_color_code_start
-		elif assistant_text_color == 'white':
-		  assistant_text_color_start = white_text_color_code_start
-		elif assistant_text_color == 'black':
-		  assistant_text_color_start = black_text_color_code_start
-
-		# Set the SYSTEM user text color
-		if system_text_color == 'red':
-		  system_background_color_start = red_text_color_code_start
-		elif system_text_color == 'green':
-		  system_text_color_start = green_text_color_code_start
-		elif system_text_color == 'yellow':
-			system_text_color_start = yellow_text_color_code_start
-		elif system_text_color == 'blue':
-		  system_text_color_start = blue_text_color_code_start
-		elif system_text_color == 'magenta':
-		  system_text_color_start = magenta_text_color_code_start
-		elif system_text_color == 'cyan':
-		  system_background_color_start = cyan_text_color_code_start
-		elif system_text_color == 'white':
-		  system_text_color_start = white_text_color_code_start
-		elif system_text_color == 'black':
-		  system_text_color_start = black_text_color_code_start
-
 		string = rec.Result()
 		trimmed_string = strip_string(string)
 		if trimmed_string is None:
@@ -457,6 +352,37 @@ def commbase_stt_vosk_p():
 		  print(f'\033[{assistant_background_color_start}\033[{assistant_text_color_start}{assistant_name}:\033[{color_code_end}\033[{color_code_end}\033[{assistant_text_color_start} Processing ... okay stop\033[{color_code_end}')
 
 
+<<<<<<< HEAD
+	def display_assistant_avatar():
+		"""
+		Displays the assistant avatar in the terminal.
+
+		This function retrieves the ASCII art avatar of the assistant, assigns the
+		appropriate color based on the configured avatar color, and then prints it
+		to the terminal.
+
+		Note:
+		    The color codes used in the avatar display are obtained from the
+		    `get_terminal_colors()` function.
+		    The avatar color is obtained from the `get_assistant_avatar_color()`
+		    function.
+		    The ASCII art avatar is obtained from the `get_assistant_avatar()`
+		    function.
+
+		Example:
+		    Terminal output:
+
+		    >>> display_assistant_avatar()
+		    [COLOR CODES] ASCII ART [RESET]
+		"""
+		# Load an ASCII art file, store its content in a variable, and then print it
+		# in a specific color using terminal escape sequences.
+		assistant_avatar = read_plain_text_file(ASCII_FILE_PATH)
+		print(f'\033[{avatar_color_start}\033[{assistant_avatar}\033[{color_code_end}')
+
+
+=======
+>>>>>>> b9b228f5e3f39bed4aadf53110de4537bbd6187d
 	# Create ArgumentParser object with add_help=False to disable default help
 	# message.
 	parser = argparse.ArgumentParser(add_help=False)
@@ -527,13 +453,15 @@ def commbase_stt_vosk_p():
 
 		with sd.RawInputStream(samplerate=args.samplerate, blocksize = 8000, device=args.device, dtype='int16',
 	channels=1, callback=callback):
-			display_assistant_avatar()
-			
+
 			# Assign the values returned by get_terminal_colors()
 			red_background_color_code_start, green_background_color_code_start, yellow_background_color_code_start, blue_background_color_code_start, magenta_background_color_code_start, cyan_background_color_code_start, white_background_color_code_start, black_background_color_code_start, red_text_color_code_start, green_text_color_code_start, yellow_text_color_code_start, blue_text_color_code_start, magenta_text_color_code_start, cyan_text_color_code_start, white_text_color_code_start, black_text_color_code_start, color_code_end = get_terminal_colors()
 
 			# Assign the values returned by get_chat_participant_colors()
 			end_user_background_color, assistant_background_color, system_background_color, end_user_text_color, assistant_text_color, system_text_color = get_chat_participant_colors()
+
+			# Assign the values returned by get_assistant_avatar_color()
+			avatar_color = get_assistant_avatar_color()
 
 			# Assign the values returned by get_chat_participant_names()
 			end_user_name, assistant_name, system_name = get_chat_participant_names()
@@ -541,119 +469,42 @@ def commbase_stt_vosk_p():
 			# Assign the values returned by get_tts_engine_string()
 			tts_engine_str = get_tts_engine_string()
 
-			# Set the END USER user background color
-			if end_user_background_color == 'red':
-				end_user_background_color_start = red_background_color_code_start
-			elif end_user_background_color == 'green':
-				end_user_background_color_start = green_background_color_code_start
-			elif end_user_background_color == 'yellow':
-				end_user_background_color_start = yellow_background_color_code_start
-			elif end_user_background_color == 'blue':
-				end_user_background_color_start = blue_background_color_code_start
-			elif end_user_background_color == 'magenta':
-				end_user_background_color_start = magenta_background_color_code_start
-			elif end_user_background_color == 'cyan':
-				end_user_background_color_start = cyan_background_color_code_start
-			elif end_user_background_color == 'white':
-				end_user_background_color_start = white_background_color_code_start
-			elif end_user_background_color == 'black':
-				end_user_background_color_start = black_background_color_code_start
+			# Set the background color for the end user
+			end_user_background_color_start = set_end_user_background_color(end_user_background_color)
 
-			# Set the ASSISTANT user background color
-			if assistant_background_color == 'red':
-				assistant_background_color_start = red_background_color_code_start
-			elif assistant_background_color == 'green':
-				assistant_background_color_start = green_background_color_code_start
-			elif assistant_background_color == 'yellow':
-				assistant_background_color_start = yellow_background_color_code_start
-			elif assistant_background_color == 'blue':
-				assistant_background_color_start = blue_background_color_code_start
-			elif assistant_background_color == 'magenta':
-				assistant_background_color_start = magenta_background_color_code_start
-			elif assistant_background_color == 'cyan':
-				assistant_background_color_start = cyan_background_color_code_start
-			elif assistant_background_color == 'white':
-				assistant_background_color_start = white_background_color_code_start
-			elif assistant_background_color == 'black':
-			  assistant_background_color_start = black_background_color_code_start
+			# Set the background color for the assistant user
+			assistant_background_color_start = set_assistant_user_background_color(assistant_background_color)
 
-			# Set the SYSTEM user background color
-			if system_background_color == 'red':
-				system_background_color_start = red_background_color_code_start
-			elif system_background_color == 'green':
-				system_background_color_start = green_background_color_code_start
-			elif system_background_color == 'yellow':
-				system_background_color_start = yellow_background_color_code_start
-			elif system_background_color == 'blue':
-				system_background_color_start = blue_background_color_code_start
-			elif system_background_color == 'magenta':
-				system_background_color_start = magenta_background_color_code_start
-			elif system_background_color == 'cyan':
-				system_background_color_start = cyan_background_color_code_start
-			elif system_background_color == 'white':
-				system_background_color_start = white_background_color_code_start
-			elif system_background_color == 'black':
-				system_background_color_start = black_background_color_code_start
+			# Set the background color for the system user
+			system_background_color_start = set_system_user_background_color(system_background_color)
 
-			# Set the END USER user text color
-			if end_user_text_color == 'red':
-			  end_user_text_color_start = red_text_color_code_start
-			elif end_user_text_color == 'green':
-				end_user_text_color_start = green_text_color_code_start
-			elif end_user_text_color == 'yellow':
-				end_user_text_color_start = yellow_text_color_code_start
-			elif end_user_text_color == 'blue':
-			 end_user_text_color_start = blue_text_color_code_start
-			elif end_user_text_color == 'magenta':
-			  end_user_text_color_start = magenta_text_color_code_start
-			elif end_user_text_color == 'cyan':
-			  end_user_text_color_start = cyan_text_color_code_start
-			elif end_user_text_color == 'white':
-			  end_user_text_color_start = white_text_color_code_start
-			elif end_user_text_color == 'black':
-			  end_user_text_color_start = black_text_color_code_start
+			# Set the text color for the end user
+			end_user_text_color_start = set_end_user_text_color(end_user_text_color)
 
-			# Set the ASSISTANT user text color
-			if assistant_text_color == 'red':
-			  assistant_text_color_start = red_text_color_code_start
-			elif assistant_text_color == 'green':
-			  assistant_text_color_start = green_text_color_code_start
-			elif assistant_text_color == 'yellow':
-				assistant_text_color_start = yellow_text_color_code_start
-			elif assistant_text_color == 'blue':
-			  assistant_text_color_start = blue_text_color_code_start
-			elif assistant_text_color == 'magenta':
-			  assistant_text_color_start = magenta_text_color_code_start
-			elif assistant_text_color == 'cyan':
-			  assistant_text_color_start = cyan_text_color_code_start
-			elif assistant_text_color == 'white':
-			  assistant_text_color_start = white_text_color_code_start
-			elif assistant_text_color == 'black':
-			  assistant_text_color_start = black_text_color_code_start
+			# Set the text color for the assistant user
+			assistant_text_color_start = set_assistant_user_text_color(assistant_text_color)
 
-			# Set the SYSTEM user text color
-			if system_text_color == 'red':
-			  system_text_color_start = red_text_color_code_start
-			elif system_text_color == 'green':
-			  system_text_color_start = green_text_color_code_start
-			elif system_text_color == 'yellow':
-				system_text_color_start = yellow_text_color_code_start
-			elif system_text_color == 'blue':
-			  system_text_color_start = blue_text_color_code_start
-			elif system_text_color == 'magenta':
-			  system_text_color_start = magenta_text_color_code_start
-			elif system_text_color == 'cyan':
-			  system_background_color_start = cyan_text_color_code_start
-			elif system_text_color == 'white':
-			  system_text_color_start = white_text_color_code_start
-			elif system_text_color == 'black':
-			  system_text_color_start = black_text_color_code_start
+			# Set the text color for the system user
+			system_text_color_start = set_system_user_text_color(system_text_color)
 
+<<<<<<< HEAD
+			# Set the color of the assistant's avatar
+			avatar_color_start = set_assistant_avatar_color(avatar_color)
+
+			# Display the assitant avatar
+			display_assistant_avatar()
+
+			# Read the content of a file that provides instructions about muting the
+			# microphone to pause recording. It then prints the content, including the
+			# formatted assistant name and colors.
+			discourse = read_plain_text_file(INSTRUCTION_FILE_PATH)
+=======
 			# Read the content of a file that provides instructions about muting the
 			# microphone to pause recording. It then prints the content, including the
 			# formatted assistant name and colors.
 			file_path = os.environ["COMMBASE_APP_DIR"] + '/bundles/built-in/broker/libcommbase/resources/discourses/mute_the_microphone_to_pause_the_recording_instruction'
 			discourse = read_plain_text_file(file_path)
+>>>>>>> b9b228f5e3f39bed4aadf53110de4537bbd6187d
 			print(f'\n\033[{assistant_background_color_start}\033[{assistant_text_color_start}{assistant_name}:\033[{color_code_end}\033[{color_code_end}\033[{assistant_text_color_start} {discourse}\033[{color_code_end}')
 			# TODO: Replace system commands with new libcommbase routines mute and unmute
 			# Mute the microphone before the assistant speaks
@@ -696,16 +547,25 @@ def main():
     program.
     - Run this script using the Python interpreter: `commbase-stt-vosk-p.py`
 	
-	Args:
+	Paramenters:
 			None
     
 	Returns:
   		None
 	"""
 	# Global declarations
-	global ML_MODEL, RESULT_DATA_FILE, PREV_DATA_FILE, OUTPUT_HISTORY_FILE, STOP_STR, q
+	global CONFIG_FILE_PATH, ASCII_FILE_PATH, INSTRUCTION_FILE_PATH, ML_MODEL, RESULT_DATA_FILE, PREV_DATA_FILE, OUTPUT_HISTORY_FILE, STOP_STR, q
 
-	# The path to the model
+	# The path of the env configuration file
+	CONFIG_FILE_PATH = load_config_file()
+
+	# The path of the ASCII art file for the avatar
+	ASCII_FILE_PATH = os.environ["COMMBASE_APP_DIR"] + '/assets/ascii/avatar.asc'
+	
+	# The path of the instruction file
+	INSTRUCTION_FILE_PATH = os.environ["COMMBASE_APP_DIR"] + '/bundles/built-in/broker/libcommbase/resources/discourses/mute_the_microphone_to_pause_the_recording_instruction'
+
+	# The path to the ML model
 	ML_MODEL = '$COMMBASE_APP_DIR/bundles/built-in/broker/vosk/model'
 	#print (string.Template(ML_MODEL).substitute(os.environ))
 
@@ -724,7 +584,6 @@ def main():
 	# Call commbase_stt_vosk_p
 	commbase_stt_vosk_p()
 	
-
 # Ensure that the main() function is executed only when the script is run
 # directly as the main program.
 if __name__ == '__main__':

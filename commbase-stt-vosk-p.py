@@ -46,8 +46,13 @@ import sys
 import subprocess
 import string
 import json
+<<<<<<< HEAD
 from functions import read_plain_text_file, load_config_file
 from terminal_colors import get_terminal_colors, get_chat_participant_colors, get_assistant_avatar_color, set_end_user_background_color, set_assistant_user_background_color, set_system_user_background_color, set_end_user_text_color, set_assistant_user_text_color, set_system_user_text_color, set_assistant_avatar_color
+=======
+from functions import read_plain_text_file
+from terminal_colors import get_terminal_colors, get_chat_participant_colors, get_assistant_avatar_color
+>>>>>>> b9b228f5e3f39bed4aadf53110de4537bbd6187d
 
 
 def commbase_stt_vosk_p():
@@ -55,6 +60,63 @@ def commbase_stt_vosk_p():
 	Takes audio input, processes it, and outputs the recognized text. The 
 	recognized text is then cleaned up, and saved in files.
 	"""
+<<<<<<< HEAD
+=======
+
+	def display_assistant_avatar():
+		"""
+		Displays the assistant avatar in the terminal.
+
+		This function retrieves the ASCII art avatar of the assistant, assigns the
+		appropriate color based on the configured avatar color, and then prints it
+		to the terminal.
+
+		Note:
+		    The color codes used in the avatar display are obtained from the
+		    `get_terminal_colors()` function.
+		    The avatar color is obtained from the `get_assistant_avatar_color()`
+		    function.
+		    The ASCII art avatar is obtained from the `get_assistant_avatar()`
+		    function.
+
+		Example:
+		    Terminal output:
+
+		    >>> display_assistant_avatar()
+		    [COLOR CODES] ASCII ART [RESET]
+
+		"""
+		# Assign the values returned by get_terminal_colors()
+		red_background_color_code_start, green_background_color_code_start, yellow_background_color_code_start, blue_background_color_code_start, magenta_background_color_code_start, cyan_background_color_code_start, white_background_color_code_start, black_background_color_code_start, red_text_color_code_start, green_text_color_code_start, yellow_text_color_code_start, blue_text_color_code_start, magenta_text_color_code_start, cyan_text_color_code_start, white_text_color_code_start, black_text_color_code_start, color_code_end = get_terminal_colors()
+
+		# Assign the values returned by get_assistant_avatar_color()
+		avatar_color = get_assistant_avatar_color()
+		
+		# Set the assistant avatar color
+		if avatar_color == "red":
+		  avatar_color_start = red_text_color_code_start
+		if avatar_color == "green":
+		  avatar_color_start = green_text_color_code_start
+		if avatar_color == "yellow":
+		  avatar_color_start = yellow_text_color_code_start
+		if avatar_color == "blue":
+		  avatar_color_start = blue_text_color_code_start
+		if avatar_color == "magenta":
+		  avatar_color_start = magenta_text_color_code_start
+		if avatar_color == "cyan":
+		  avatar_color_start = cyan_text_color_code_start
+		if avatar_color == "white":
+		  avatar_color_start = white_text_color_code_start
+		if avatar_color == "black":
+		  avatar_color_start = black_text_color_code_start
+
+		# Load an ASCII art file, store its content in a variable, and then print it
+		# in a specific color using terminal escape sequences.
+		file_path = os.environ["COMMBASE_APP_DIR"] + '/assets/ascii/avatar.asc'
+		assistant_avatar = read_plain_text_file(file_path)
+		print(f'\033[{avatar_color_start}\033[{assistant_avatar}\033[{color_code_end}')
+	
+>>>>>>> b9b228f5e3f39bed4aadf53110de4537bbd6187d
 
 	def get_chat_participant_names():
 		""" 
@@ -109,11 +171,21 @@ def commbase_stt_vosk_p():
         str or None: The TTS engine string if found in the configuration file,
         otherwise None.
     """
+<<<<<<< HEAD
+=======
+		# Specify the path of the env file containing the variable
+		file_path = os.environ["COMMBASE_APP_DIR"] + '/config/app.conf'
+
+>>>>>>> b9b228f5e3f39bed4aadf53110de4537bbd6187d
 		# Initialize variable for the tts engine string
 		tts_engine_str = None
 
 		# Open the file and read its contents
+<<<<<<< HEAD
 		with open(CONFIG_FILE_PATH, 'r') as f:
+=======
+		with open(file_path, 'r') as f:
+>>>>>>> b9b228f5e3f39bed4aadf53110de4537bbd6187d
 			for line in f:
 				# Split the line into variable name and value
 				variable_name, value = line.strip().split('=')
@@ -280,6 +352,7 @@ def commbase_stt_vosk_p():
 		  print(f'\033[{assistant_background_color_start}\033[{assistant_text_color_start}{assistant_name}:\033[{color_code_end}\033[{color_code_end}\033[{assistant_text_color_start} Processing ... okay stop\033[{color_code_end}')
 
 
+<<<<<<< HEAD
 	def display_assistant_avatar():
 		"""
 		Displays the assistant avatar in the terminal.
@@ -308,6 +381,8 @@ def commbase_stt_vosk_p():
 		print(f'\033[{avatar_color_start}\033[{assistant_avatar}\033[{color_code_end}')
 
 
+=======
+>>>>>>> b9b228f5e3f39bed4aadf53110de4537bbd6187d
 	# Create ArgumentParser object with add_help=False to disable default help
 	# message.
 	parser = argparse.ArgumentParser(add_help=False)
@@ -412,6 +487,7 @@ def commbase_stt_vosk_p():
 			# Set the text color for the system user
 			system_text_color_start = set_system_user_text_color(system_text_color)
 
+<<<<<<< HEAD
 			# Set the color of the assistant's avatar
 			avatar_color_start = set_assistant_avatar_color(avatar_color)
 
@@ -422,6 +498,13 @@ def commbase_stt_vosk_p():
 			# microphone to pause recording. It then prints the content, including the
 			# formatted assistant name and colors.
 			discourse = read_plain_text_file(INSTRUCTION_FILE_PATH)
+=======
+			# Read the content of a file that provides instructions about muting the
+			# microphone to pause recording. It then prints the content, including the
+			# formatted assistant name and colors.
+			file_path = os.environ["COMMBASE_APP_DIR"] + '/bundles/built-in/broker/libcommbase/resources/discourses/mute_the_microphone_to_pause_the_recording_instruction'
+			discourse = read_plain_text_file(file_path)
+>>>>>>> b9b228f5e3f39bed4aadf53110de4537bbd6187d
 			print(f'\n\033[{assistant_background_color_start}\033[{assistant_text_color_start}{assistant_name}:\033[{color_code_end}\033[{color_code_end}\033[{assistant_text_color_start} {discourse}\033[{color_code_end}')
 			# TODO: Replace system commands with new libcommbase routines mute and unmute
 			# Mute the microphone before the assistant speaks

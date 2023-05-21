@@ -46,10 +46,6 @@ def read_plain_text_file(file_path):
 
 	Returns:
 		  str: The content of the file as a string.
-<<<<<<< HEAD
-=======
-
->>>>>>> b9b228f5e3f39bed4aadf53110de4537bbd6187d
 	"""
 	file_variable = ""
 
@@ -61,7 +57,6 @@ def read_plain_text_file(file_path):
 	# Return the variable with the file contents
 	return file_variable
 
-<<<<<<< HEAD
 
 def load_config_file():
 	"""
@@ -75,5 +70,3 @@ def load_config_file():
 	
 	return CONFIG_FILE_PATH
 
-=======
->>>>>>> b9b228f5e3f39bed4aadf53110de4537bbd6187d

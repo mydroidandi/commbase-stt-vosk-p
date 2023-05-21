@@ -46,7 +46,10 @@ def read_plain_text_file(file_path):
 
 	Returns:
 		  str: The content of the file as a string.
+<<<<<<< HEAD
+=======
 
+>>>>>>> b9b228f5e3f39bed4aadf53110de4537bbd6187d
 	"""
 	file_variable = ""
 
@@ -58,3 +61,19 @@ def read_plain_text_file(file_path):
 	# Return the variable with the file contents
 	return file_variable
 
+<<<<<<< HEAD
+
+def load_config_file():
+	"""
+	Loads the configuration file path.
+
+	Returns:
+			str: The path of the configuration file.
+	"""
+	# Specify the path of the env file containing the variables
+	CONFIG_FILE_PATH = os.environ["COMMBASE_APP_DIR"] + '/config/app.conf'
+	
+	return CONFIG_FILE_PATH
+
+=======
+>>>>>>> b9b228f5e3f39bed4aadf53110de4537bbd6187d

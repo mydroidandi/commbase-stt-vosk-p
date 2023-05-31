@@ -35,8 +35,9 @@
 # handling, and mathematical operations.
 
 # Requirements
-import os.path
 import json
+import os.path
+from config import CONFIG_FILE_PATH
 
 
 def read_plain_text_file(file_path):
@@ -60,17 +61,48 @@ def read_plain_text_file(file_path):
 	return file_variable
 
 
+def read_lines_from_file(file_path):
+	"""
+	Read all lines from a file and return them as a list.
+
+	Parameters:
+		  file_path (str): The path to the file to be read.
+
+	Returns:
+		  list: A list containing all the lines from the file.
+
+	Example:
+		  >>> lines = read_lines_from_file('file.txt')
+		  >>> print(lines)
+		  ['This is line 1.\n', 'This is line 2.\n', 'This is line 3.\n']
+	"""
+	with open(file_path, 'r') as f:
+		# Store all the file lines in a list
+		lines = f.readlines()  # Read all lines from the file
+
+	# Return all the lines in a list
+	return lines
+
+
 def load_config_file():
 	"""
 	Loads the configuration file path.
 
 	Returns:
 			str: The path of the configuration file.
+
+	Raises:
+        KeyError: If the environment variable 'COMMBASE_APP_DIR' is not set.
 	"""
-	# Specify the path of the env file containing the variables
-	CONFIG_FILE_PATH = os.environ["COMMBASE_APP_DIR"] + '/config/app.conf'
-	
-	return CONFIG_FILE_PATH
+	try:
+		# Specify the path of the env file containing the variables
+		CONFIG_FILE_PATH = os.environ["COMMBASE_APP_DIR"] + '/config/app.conf'
+		return CONFIG_FILE_PATH
+	except KeyError:
+		print("Error: Environment variable 'COMMBASE_APP_DIR' is not set.")
+		# You can choose to handle the error in different ways, such as returning a default value or raising an exception.
+		# Here, we choose to return None to indicate the absence of the configuration file path.
+		return None
 
 
 def int_or_str(text):
@@ -93,9 +125,9 @@ def int_or_str(text):
 	    None.
 	"""
 	try:
-	  return int(text)
+		return int(text)
 	except ValueError:
-	  return text
+		return text
 
 
 def find_text(string):
@@ -158,10 +190,10 @@ def strip_string(string):
 
 
 def get_chat_participant_names():
-	""" 
+	"""
 	Gets the chat participant names from the config file.
 
-	Reads the 'ASSISTANT_NAME_IN_CHAT_PANE', 'SYSTEM_NAME_IN_CHAT_PANE', and 
+	Reads the 'ASSISTANT_NAME_IN_CHAT_PANE', 'SYSTEM_NAME_IN_CHAT_PANE', and
 	'END_USER_NAME_IN_CHAT_PANE' variables from the environment configuration
 	file. Returns a tuple containing the string values of the variables if
 	found, or None if any of the variables are not present.
@@ -170,9 +202,6 @@ def get_chat_participant_names():
 			tuple or None: A tuple containing the assistant, system, and end user
 			names in the chat pane, or None, if any of the variables are not found.
 	"""
-	# The path of the env configuration file
-	CONFIG_FILE_PATH = load_config_file()
-	
 	# Initialize variables for the chat names
 	assistant_name = None
 	system_name = None
@@ -188,18 +217,18 @@ def get_chat_participant_names():
 			if variable_name == 'END_USER_NAME_IN_CHAT_PANE':
 				# Remove the quotes from the value of the variable
 				end_user_name = value.strip()[1:-1]
-				
+
 			elif variable_name == 'ASSISTANT_NAME_IN_CHAT_PANE':
 				# Remove the quotes from the value of the variable
 				assistant_name = value.strip()[1:-1]
-				
+
 			elif variable_name == 'SYSTEM_NAME_IN_CHAT_PANE':
 				# Remove the quotes from the value of the variable
 				system_name = value.strip()[1:-1]
-				
+
 	# Check if all three variables were found
 	if assistant_name is not None and system_name is not None and end_user_name is not None:
-		return end_user_name, assistant_name, system_name 
+		return end_user_name, assistant_name, system_name
 
 	# If any of the variables are not found, return None
 	return None
@@ -213,9 +242,6 @@ def get_tts_engine_string():
 	    str or None: The TTS engine string if found in the configuration file,
 	    otherwise None.
 	"""
-	# The path of the env configuration file
-	CONFIG_FILE_PATH = load_config_file()
-
 	# Initialize variable for the tts engine string
 	tts_engine_str = None
 
@@ -229,10 +255,71 @@ def get_tts_engine_string():
 			if variable_name == 'TTS_ENGINE_STRING':
 				# Remove the quotes from the value of the variable
 				tts_engine_str = value.strip()[1:-1]
-				
+
 	# Check if the variable was found
 	if tts_engine_str is not None:
-		return tts_engine_str 
+		return tts_engine_str
+
+	# If the variable was not found, return None
+	return None
+
+
+def get_manage_result_message_on_and_output_skill_errors_in_pane_on():
+	"""
+	Retrieve the value of the
+	MANAGE_RESULT_MESSAGE_ON_AND_OUTPUT_SKILL_ERRORS_IN_PANE_ON variable from the
+	configuration file.
+
+	Returns:
+		  str or None: The value of the variable if found, or None if not found.
+	"""
+	# Initialize variable for the tts engine string
+	true_or_false_str = None
+
+	# Open the file and read its contents
+	with open(CONFIG_FILE_PATH, 'r') as f:
+		for line in f:
+			# Split the line into variable name and value
+			variable_name, value = line.strip().split('=')
+
+			# Check if the variable we are looking for exists in the line
+			if variable_name == 'MANAGE_RESULT_MESSAGE_ON_AND_OUTPUT_SKILL_ERRORS_IN_PANE_ON':
+				# Remove the quotes from the value of the variable
+				true_or_false_str = value.strip()[1:-1]
+
+	# Check if the variable was found
+	if true_or_false_str is not None:
+		return true_or_false_str
+
+	# If the variable was not found, return None
+	return None
+
+
+def get_commbase_stt_vosk_p_parse_control_messages_on():
+	"""
+	Retrieve the value of the COMMBASE_STT_VOSK_P_PARSE_CONTROL_MESSAGES_ON
+	variable from the configuration file.
+
+	Returns:
+		  str or None: The value of the variable if found, or None if not found.
+	"""
+	# Initialize variable for the tts engine string
+	parse_control_messages = None
+
+	# Open the file and read its contents
+	with open(CONFIG_FILE_PATH, 'r') as f:
+		for line in f:
+			# Split the line into variable name and value
+			variable_name, value = line.strip().split('=')
+
+			# Check if the variable we are looking for exists in the line
+			if variable_name == 'COMMBASE_STT_VOSK_P_PARSE_CONTROL_MESSAGES_ON':
+				# Remove the quotes from the value of the variable
+				parse_control_messages = value.strip()[1:-1]
+
+	# Check if the variable was found
+	if parse_control_messages is not None:
+		return parse_control_messages
 
 	# If the variable was not found, return None
 	return None

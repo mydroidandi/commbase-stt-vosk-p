@@ -40,20 +40,90 @@
 import argparse
 import os.path
 import queue
+import string
+import subprocess
+import sys
+
 import sounddevice as sd
 import vosk
-import sys
-import subprocess
-import string
-from functions import read_plain_text_file, load_config_file, int_or_str, find_text, strip_string, get_chat_participant_names, get_tts_engine_string
-from colors import get_terminal_colors, get_chat_participant_colors, get_assistant_avatar_color, set_end_user_background_color, set_assistant_user_background_color, set_system_user_background_color, set_end_user_text_color, set_assistant_user_text_color, set_system_user_text_color, set_assistant_avatar_color
+
+from config import CONFIG_FILE_PATH
+from file_paths import (
+	get_ascii_art_file_path,
+	get_assistant_microphone_instruction_file,
+	get_control_accept_changes_patterns_file,
+	get_control_deny_changes_patterns_file,
+	get_control_enter_the_conversational_mode_patterns_file,
+	get_control_enter_the_expert_mode_patterns_file,
+	get_control_enter_the_follow_up_mode_patterns_file,
+	get_control_enter_the_normal_mode_patterns_file,
+	get_control_request_the_current_mode_patterns_file,
+	get_control_select_option_number_four_patterns_file,
+	get_control_select_option_number_one_patterns_file,
+	get_control_select_option_number_three_patterns_file,
+	get_control_select_option_number_two_patterns_file,
+	get_control_skip_question_patterns_file,
+	get_control_stop_previous_command_patterns_file,
+	get_previous_result_message_recording_file,
+	get_result_message_recording_file,
+	get_result_messages_history_file,
+	get_secrets_file_path,
+	get_vosk_ml_model_directory,
+)
+from functions import (
+	find_text,
+	get_chat_participant_names,
+	get_commbase_stt_vosk_p_parse_control_messages_on,
+	get_manage_result_message_on_and_output_skill_errors_in_pane_on,
+	get_tts_engine_string,
+	int_or_str,
+	read_lines_from_file,
+	read_plain_text_file,
+	strip_string,
+)
+from text_formatting import (
+	get_assistant_avatar_color,
+	get_chat_participant_colors,
+	get_terminal_colors,
+	set_assistant_avatar_color,
+	set_assistant_user_background_color,
+	set_assistant_user_text_color,
+	set_end_user_background_color,
+	set_end_user_text_color,
+	set_system_user_background_color,
+	set_system_user_text_color,
+)
 
 
 def commbase_stt_vosk_p():
 	"""
-	Takes audio input, processes it, and outputs the recognized text. The 
-	recognized text is then cleaned up, and saved in files.
+	Takes audio input, processes it, and outputs the recognized text. The
+    recognized text is then cleaned up, and saved in file(s).
 	"""
+	# Assign the result of calling get_vosk_ml_model_directory()
+	vosk_ml_model_directory = get_vosk_ml_model_directory()
+
+	# Define control messages
+	# To change a control command do not do that here; use its patterns file
+	# instead
+	CONTROL_STOP_PREVIOUS_COMMAND = "okay stop"
+	CONTROL_ACCEPT_CHANGES = "okay accept"
+	CONTROL_DENY_CHANGES = "okay deny"
+	CONTROL_SELECT_OPTION_NUMBER_ONE = "okay select the option number one"
+	CONTROL_SELECT_OPTION_NUMBER_TWO = "okay select the option number two"
+	CONTROL_SELECT_OPTION_NUMBER_THREE = "okay select the option number three"
+	CONTROL_SELECT_OPTION_NUMBER_FOUR = "okay select the option number four"
+	CONTROL_SKIP_QUESTION = "okay skip that question"
+	CONTROL_REQUEST_THE_CURRENT_MODE = "okay which mode are you in"
+	CONTROL_ENTER_THE_NORMAL_MODE = "okay enter the normal mode"
+	CONTROL_ENTER_THE_CONVERSATIONAL_MODE = "okay enter the conversational mode"
+	CONTROL_ENTER_THE_EXPERT_MODE = "okay enter the expert mode"
+	CONTROL_ENTER_THE_FOLLOW_UP_MODE = "okay enter the follow up mode"
+
+	# q is used to store a Queue object, which is then used to keep track of the
+	# nodes that need to be visited during the breadth-first search algorithm.
+	q = queue.Queue()
+
 
 	def callback(indata, frames, time, status):
 		"""
@@ -104,9 +174,9 @@ def commbase_stt_vosk_p():
 					>>> display_assistant_avatar()
 					[COLOR CODES] ASCII ART [RESET]
 			"""
-			# Load an ASCII art file, store its content in a variable, and then print it
-			# in a specific color using terminal escape sequences.
-			assistant_avatar = read_plain_text_file(ASCII_FILE_PATH)
+			# Load an ASCII art file, store its content in a variable, and then print
+			# it in a specific color using terminal escape sequences.
+			assistant_avatar = read_plain_text_file(ascii_art_file_path)
 			print(f'\033[{avatar_color_start}\033[{assistant_avatar}\033[{color_code_end}')
 
 
@@ -120,32 +190,124 @@ def commbase_stt_vosk_p():
 		Returns:
 			  None.
 		"""
+		# The original result
 		string = rec.Result()
+
+		# The modified result
 		trimmed_string = strip_string(string)
-		if trimmed_string is None:
-			return
 
-		print(f'\033[{end_user_background_color_start}\033[{end_user_text_color_start}{end_user_name}:\033[{color_code_end}\033[{color_code_end}\033[{end_user_text_color_start} {trimmed_string}\033[{color_code_end}')
-		# Write to data files
-		with open(RESULT_DATA_FILE, 'w') as f:
-			f.write(trimmed_string)
-		with open(PREV_DATA_FILE, 'w') as f:
-			f.write(trimmed_string)
+		# Check if the trimmed_string is not empty and control message parsing is
+		# enabled for commbase-stt-vosk-p engine
+		if trimmed_string != '' and commbase_stt_vosk_p_parse_control_messages_on == "True":
 
-		## This can be used for debugging
-		## Append to history file
-		#with open(OUTPUT_HISTORY_FILE, 'a') as f:
-		#  f.write(trimmed_string + "\n")
+			# Define the control messages dictionary
+			control_dictionary = {
+				'CONTROL_STOP_PREVIOUS_COMMAND': {
+						'patterns': control_stop_previous_command_patterns,
+						'message': f'I am dispatching "{trimmed_string}" as control "{CONTROL_STOP_PREVIOUS_COMMAND}" for processing.'
+				},
+				'CONTROL_ACCEPT_CHANGES': {
+						'patterns': control_accept_changes_patterns,
+						'message': f'I am dispatching "{trimmed_string}" as control "{CONTROL_ACCEPT_CHANGES}" for processing.'
+				},
+				'CONTROL_DENY_CHANGES': {
+						'patterns': control_deny_changes_patterns,
+						'message': f'I am dispatching "{trimmed_string}" as control "{CONTROL_DENY_CHANGES}" for processing.'
+				},
+				'CONTROL_SELECT_OPTION_NUMBER_ONE': {
+						'patterns': control_select_option_number_one_patterns,
+						'message': f'I am dispatching "{trimmed_string}" as control "{CONTROL_SELECT_OPTION_NUMBER_ONE}" for processing.'
+				},
+				'CONTROL_SELECT_OPTION_NUMBER_TWO': {
+						'patterns': control_select_option_number_two_patterns,
+						'message': f'I am dispatching "{trimmed_string}" as control "{CONTROL_SELECT_OPTION_NUMBER_TWO}" for processing.'
+				},
+				'CONTROL_SELECT_OPTION_NUMBER_THREE': {
+						'patterns': control_select_option_number_three_patterns,
+						'message': f'I am dispatching "{trimmed_string}" as control "{CONTROL_SELECT_OPTION_NUMBER_THREE}" for processing.'
+				},
+				'CONTROL_SELECT_OPTION_NUMBER_FOUR': {
+						'patterns': control_select_option_number_four_patterns,
+						'message': f'I am dispatching "{trimmed_string}" as control "{CONTROL_SELECT_OPTION_NUMBER_FOUR}" for processing.'
+				},
+				'CONTROL_SKIP_QUESTION': {
+						'patterns': control_skip_question_patterns,
+						'message': f'I am dispatching "{trimmed_string}" as control "{CONTROL_SKIP_QUESTION}" for processing.'
+				},
+				'CONTROL_REQUEST_THE_CURRENT_MODE': {
+						'patterns': control_request_the_current_mode_patterns,
+						'message': f'I am dispatching "{trimmed_string}" as control "{CONTROL_REQUEST_THE_CURRENT_MODE}" for processing.'
+				},
+				'CONTROL_ENTER_THE_NORMAL_MODE': {
+						'patterns': control_enter_the_normal_mode_patterns,
+						'message': f'I am dispatching "{trimmed_string}" as control "{CONTROL_ENTER_THE_NORMAL_MODE}" for processing.'
+				},
+				'CONTROL_ENTER_THE_CONVERSATIONAL_MODE': {
+						'patterns': control_enter_the_conversational_mode_patterns,
+						'message': f'I am dispatching "{trimmed_string}" as control "{CONTROL_ENTER_THE_CONVERSATIONAL_MODE}" for processing.'
+				},
+				'CONTROL_ENTER_THE_EXPERT_MODE': {
+						'patterns': control_enter_the_expert_mode_patterns,
+						'message': f'I am dispatching "{trimmed_string}" as control "{CONTROL_ENTER_THE_EXPERT_MODE}" for processing.'
+				},
+				'CONTROL_ENTER_THE_FOLLOW_UP_MODE': {
+						'patterns': control_enter_the_follow_up_mode_patterns,
+						'message': f'I am dispatching "{trimmed_string}" as control "{CONTROL_ENTER_THE_FOLLOW_UP_MODE}" for processing.'
+				}
+			}
 
-		# Process the command if it doesn't contain the stop string
-		if STOP_STR not in trimmed_string:
-			# Execute a script written in a language other than Python to manage and
-			# process the current result. (This functionality is disabled for
-			# debugging purposes.)
-			#subprocess.run(['bash', os.environ["COMMBASE_APP_DIR"] + '/src/skill'])
-			print(f'\033[{assistant_background_color_start}\033[{assistant_text_color_start}{assistant_name}:\033[{color_code_end}\033[{color_code_end}\033[{assistant_text_color_start} Processing ... {trimmed_string}\033[{color_code_end}')
-		else:
-			print(f'\033[{assistant_background_color_start}\033[{assistant_text_color_start}{assistant_name}:\033[{color_code_end}\033[{color_code_end}\033[{assistant_text_color_start} Processing ... okay stop\033[{color_code_end}')
+			# The control message and END USER message matching
+			found_match = False
+
+			# Check if the trimmed_string is not empty
+			for control, info in control_dictionary.items():
+				patterns = info['patterns']  # Get the patterns for the current control
+				message = info['message']  # Get the message for the current control
+
+				for line in patterns:
+					if trimmed_string == line.strip():  # Check for exact match
+						# If a match is found, print the message and record the control
+						# message
+						print(f'\033[{assistant_background_color_start}\033[{assistant_text_color_start}{assistant_name}:\033[{color_code_end}\033[{color_code_end}\033[{assistant_text_color_start} {message}\033[{color_code_end}')
+						# Record the control message string to result_message_recording_file
+						with open(result_message_recording_file, 'w') as f:
+							f.write(control)
+						found_match = True
+						if manage_result_message_on_and_output_skill_errors_in_pane_on == "True":
+							# Manage the result message
+							subprocess.run(['bash', os.environ["COMMBASE_APP_DIR"] + '/src/skill'])
+						break  # Exit the inner loop if a match is found
+
+				if found_match:
+					break  # Exit the outer loop if a match is found
+
+			# Handle the case when no match is found
+			if not found_match:
+				# Record a normal END USER message instead of a control message
+				print(f'\033[{assistant_background_color_start}\033[{assistant_text_color_start}{assistant_name}:\033[{color_code_end}\033[{color_code_end}\033[{assistant_text_color_start} I am dispatching "{trimmed_string}" for processing.\033[{color_code_end}')
+				# Record the trimmed_string data to result_message_recording_file and
+				# previous_result_message_recording_file
+				with open(result_message_recording_file, 'w') as f:
+					f.write(trimmed_string)
+				with open(previous_result_message_recording_file, 'w') as f:
+					f.write(trimmed_string)
+				if manage_result_message_on_and_output_skill_errors_in_pane_on == "True":
+					# Manage the result message
+					subprocess.run(['bash', os.environ["COMMBASE_APP_DIR"] + '/src/skill'])
+
+		# Check if the trimmed_string is not empty and control message parsing is
+		# disabled for commbase-stt-vosk-p engine
+		elif trimmed_string != '' and commbase_stt_vosk_p_parse_control_messages_on == "False":
+			print(f'\033[{assistant_background_color_start}\033[{assistant_text_color_start}{assistant_name}:\033[{color_code_end}\033[{color_code_end}\033[{assistant_text_color_start} I am dispatching "{trimmed_string}" no controls for processing.\033[{color_code_end}')
+			# Record the trimmed_string data to result_message_recording_file and
+			# previous_result_message_recording_file
+			with open(result_message_recording_file, 'w') as f:
+				f.write(trimmed_string)
+			with open(previous_result_message_recording_file, 'w') as f:
+				f.write(trimmed_string)
+			if manage_result_message_on_and_output_skill_errors_in_pane_on == "True":
+				# Manage the result message
+				subprocess.run(['bash', os.environ["COMMBASE_APP_DIR"] + '/src/skill'])
 
 
 	# Create ArgumentParser object with add_help=False to disable default help
@@ -199,7 +361,7 @@ def commbase_stt_vosk_p():
 
 	try:
 		if args.model is None:
-			args.model = string.Template(ML_MODEL).substitute(os.environ)
+			args.model = string.Template(vosk_ml_model_directory).substitute(os.environ)
 		if not os.path.exists(args.model):
 			print ("Please download a model for your language from https://alphacephei.com/vosk/models")
 			print ("and unpack as 'model' in the current folder.")
@@ -218,21 +380,16 @@ def commbase_stt_vosk_p():
 
 		with sd.RawInputStream(samplerate=args.samplerate, blocksize = 8000, device=args.device, dtype='int16',
 	channels=1, callback=callback):
+			# Assign functions imported from text_formatting
 
-			# Assign the values returned by get_terminal_colors()
+			# Set the values returned by get_terminal_colors()
 			red_background_color_code_start, green_background_color_code_start, yellow_background_color_code_start, blue_background_color_code_start, magenta_background_color_code_start, cyan_background_color_code_start, white_background_color_code_start, black_background_color_code_start, red_text_color_code_start, green_text_color_code_start, yellow_text_color_code_start, blue_text_color_code_start, magenta_text_color_code_start, cyan_text_color_code_start, white_text_color_code_start, black_text_color_code_start, color_code_end = get_terminal_colors()
 
-			# Assign the values returned by get_chat_participant_colors()
+			# Set the values returned by get_chat_participant_colors()
 			end_user_background_color, assistant_background_color, system_background_color, end_user_text_color, assistant_text_color, system_text_color = get_chat_participant_colors()
 
-			# Assign the values returned by get_assistant_avatar_color()
+			# Set the values returned by get_assistant_avatar_color()
 			avatar_color = get_assistant_avatar_color()
-
-			# Assign the values returned by get_chat_participant_names()
-			end_user_name, assistant_name, system_name = get_chat_participant_names()
-			
-			# Assign the values returned by get_tts_engine_string()
-			tts_engine_str = get_tts_engine_string()
 
 			# Set the background color for the end user
 			end_user_background_color_start = set_end_user_background_color(end_user_background_color)
@@ -255,13 +412,147 @@ def commbase_stt_vosk_p():
 			# Set the color of the assistant's avatar
 			avatar_color_start = set_assistant_avatar_color(avatar_color)
 
+
+			# Assign functions imported from functions
+
+			# Set the values returned by get_tts_engine_string()
+			tts_engine_str = get_tts_engine_string()
+
+			# Set the values returned by get_chat_participant_names()
+			end_user_name, assistant_name, system_name = get_chat_participant_names()
+
+			# Set the value of manage_result_message_on_and_output_skill_errors_in_pane_on
+			manage_result_message_on_and_output_skill_errors_in_pane_on =  get_manage_result_message_on_and_output_skill_errors_in_pane_on()
+
+			# Set the value of commbase_stt_vosk_p_parse_control_messages_on
+			commbase_stt_vosk_p_parse_control_messages_on = get_commbase_stt_vosk_p_parse_control_messages_on()
+
+
+			# Assign functions imported from file_paths
+
+			# Set the values returned by get_secrets_file_path()
+			secrets_file_path = get_secrets_file_path()
+
+			# Set the values returned by get_ascii_art_file_path()
+			ascii_art_file_path = get_ascii_art_file_path()
+
+			# Set the values returned by get_assistant_microphone_instruction_file()
+			assistant_microphone_instruction_file = get_assistant_microphone_instruction_file()
+
+			# Set the values returned by get_result_message_recording_file()
+			result_message_recording_file = get_result_message_recording_file()
+
+			# Set the values returned by get_previous_result_message_recording_file()
+			previous_result_message_recording_file = get_previous_result_message_recording_file()
+
+			# Set the values returned by get_result_messages_history_file()
+			result_messages_history_file = get_result_messages_history_file()
+
+			# Set the values returned by get_control_stop_previous_command_patterns_file()
+			control_stop_previous_command_patterns_file = get_control_stop_previous_command_patterns_file()
+
+			# Set the values returned by get_control_accept_changes_patterns_file()
+			control_accept_changes_patterns_file = get_control_accept_changes_patterns_file()
+
+			# Set the values returned by get_control_deny_changes_patterns_file()
+			control_deny_changes_patterns_file = get_control_deny_changes_patterns_file()
+
+			# Set the values returned by get_control_select_option_number_one_patterns_file()
+			control_select_option_number_one_patterns_file = get_control_select_option_number_one_patterns_file()
+
+			# Set the values returned by get_control_select_option_number_two_patterns_file()
+			control_select_option_number_two_patterns_file = get_control_select_option_number_two_patterns_file()
+
+			# Set the values returned by get_control_select_option_number_three_patterns_file()
+			control_select_option_number_three_patterns_file = get_control_select_option_number_three_patterns_file()
+
+			# Set the values returned by get_control_select_option_number_four_patterns_file()
+			control_select_option_number_four_patterns_file = get_control_select_option_number_four_patterns_file()
+
+			# Set the values returned by get_control_skip_question_patterns_file()
+			control_skip_question_patterns_file = get_control_skip_question_patterns_file()
+
+			# Set the values returned by get_control_request_the_current_mode_patterns_file()
+			control_request_the_current_mode_patterns_file = get_control_request_the_current_mode_patterns_file()
+
+			# Set the values returned by get_control_enter_the_normal_mode()
+			control_enter_the_normal_mode_patterns_file = get_control_enter_the_normal_mode_patterns_file()
+
+			# Set the values returned by get_control_enter_the_conversational_mode_patterns_file()
+			control_enter_the_conversational_mode_patterns_file = get_control_enter_the_conversational_mode_patterns_file()
+
+			# Set the values returned by get_control_enter_the_expert_mode_patterns_file()
+			control_enter_the_expert_mode_patterns_file = get_control_enter_the_expert_mode_patterns_file()
+
+			# Set the values returned by get_control_enter_the_follow_up_mode_patterns_file()
+			control_enter_the_follow_up_mode_patterns_file = get_control_enter_the_follow_up_mode_patterns_file()
+
+
+			# Preload all the control pattern files
+
+			# CONTROL_STOP_PREVIOUS_COMMAND
+			# Load the control patterns file and store its content in a variable
+			control_stop_previous_command_patterns = read_lines_from_file(control_stop_previous_command_patterns_file)
+
+			# CONTROL_ACCEPT_CHANGES
+			# Load the control patterns file and store its content in a variable
+			control_accept_changes_patterns = read_lines_from_file(control_accept_changes_patterns_file)
+
+			#	CONTROL_DENY_CHANGES
+			# Load the control patterns file and store its content in a variable
+			control_deny_changes_patterns = read_lines_from_file(control_deny_changes_patterns_file)
+
+			#	CONTROL_SELECT_OPTION_NUMBER_ONE
+			# Load the control patterns file and store its content in a variable
+			control_select_option_number_one_patterns = read_lines_from_file(control_select_option_number_one_patterns_file)
+
+			#	CONTROL_SELECT_OPTION_NUMBER_TWO
+			# Load the control patterns file and store its content in a variable
+			control_select_option_number_two_patterns = read_lines_from_file(control_select_option_number_two_patterns_file)
+
+			#	CONTROL_SELECT_OPTION_NUMBER_THREE
+			# Load the patterns file and store its content in a variable
+			control_select_option_number_three_patterns = read_lines_from_file(control_select_option_number_three_patterns_file)
+
+			#	CONTROL_SELECT_OPTION_NUMBER_FOUR
+			# Load the control patterns file and store its content in a variable
+			control_select_option_number_four_patterns = read_lines_from_file(control_select_option_number_four_patterns_file)
+
+			#	CONTROL_SKIP_QUESTION
+			# Load the control patterns file and store its content in a variable
+			control_skip_question_patterns = read_lines_from_file(control_skip_question_patterns_file)
+
+			#	CONTROL_REQUEST_THE_CURRENT_MODE
+			# Load the control patterns file and store its content in a variable
+			control_request_the_current_mode_patterns = read_lines_from_file(control_request_the_current_mode_patterns_file)
+
+			#	CONTROL_ENTER_THE_NORMAL_MODE
+			# Load the control patterns file and store its content in a variable
+			control_enter_the_normal_mode_patterns = read_lines_from_file(control_enter_the_normal_mode_patterns_file)
+
+			#	CONTROL_ENTER_THE_CONVERSATIONAL_MODE
+
+			control_enter_the_conversational_mode_patterns = read_lines_from_file(control_enter_the_conversational_mode_patterns_file)
+
+			#	CONTROL_ENTER_THE_EXPERT_MODE
+			# Load the control patterns file and store its content in a variable
+			control_enter_the_expert_mode_patterns = read_lines_from_file(control_enter_the_expert_mode_patterns_file)
+
+			#	CONTROL_ENTER_THE_FOLLOW_UP_MODE
+			# Load the control patterns file and store its content in a variable
+			control_enter_the_follow_up_mode_patterns = read_lines_from_file(control_enter_the_follow_up_mode_patterns_file)
+
+
+			# Show avatar
+
 			# Display the assitant avatar
 			display_assistant_avatar()
+
 
 			# Read the content of a file that provides instructions about muting the
 			# microphone to pause recording. It then prints the content, including the
 			# formatted assistant name and colors.
-			discourse = read_plain_text_file(INSTRUCTION_FILE_PATH)
+			discourse = read_plain_text_file(assistant_microphone_instruction_file)
 			print(f'\n\033[{assistant_background_color_start}\033[{assistant_text_color_start}{assistant_name}:\033[{color_code_end}\033[{color_code_end}\033[{assistant_text_color_start} {discourse}\033[{color_code_end}')
 			# TODO: Replace system commands with new libcommbase routines mute and unmute
 			# Mute the microphone before the assistant speaks
@@ -275,13 +566,13 @@ def commbase_stt_vosk_p():
 			rec = vosk.KaldiRecognizer(model, args.samplerate)
 
 			while True:
-			  data = q.get()
-			  if rec.AcceptWaveform(data):
-			    print_result()
-			  #else:
-			    #print(rec.PartialResult())
-			  if dump_fn is not None:
-			    dump_fn.write(data)
+				data = q.get()
+				if rec.AcceptWaveform(data):
+					print_result()
+				#else
+					#print(rec.PartialResult())
+				if dump_fn is not None:
+					dump_fn.write(data)
 
 
 	except KeyboardInterrupt:
@@ -298,49 +589,24 @@ def main():
 	This function serves as the entry point for the program. It is responsible for
 	initiating the execution of the program and coordinating the different
 	components or functions within it.
-	
+
 	Usage:
     - Ensure that all required dependencies are installed before running this
     program.
     - Run this script using the Python interpreter: `commbase-stt-vosk-p.py`
-	
+
 	Paramenters:
 			None
-    
+
 	Returns:
   		None
 	"""
 	# Global declarations
-	global CONFIG_FILE_PATH, ASCII_FILE_PATH, INSTRUCTION_FILE_PATH, ML_MODEL, RESULT_DATA_FILE, PREV_DATA_FILE, OUTPUT_HISTORY_FILE, STOP_STR, q
-
-	# The path of the env configuration file
-	CONFIG_FILE_PATH = load_config_file()
-
-	# The path of the ASCII art file for the avatar
-	ASCII_FILE_PATH = os.environ["COMMBASE_APP_DIR"] + '/assets/ascii/avatar.asc'
-	
-	# The path of the instruction file
-	INSTRUCTION_FILE_PATH = os.environ["COMMBASE_APP_DIR"] + '/bundles/built-in/broker/libcommbase/resources/discourses/mute_the_microphone_to_pause_the_recording_instruction'
-
-	# The path to the ML model
-	ML_MODEL = '$COMMBASE_APP_DIR/bundles/built-in/broker/vosk/model'
-	#print (string.Template(ML_MODEL).substitute(os.environ))
-
-	# Output files
-	RESULT_DATA_FILE = os.environ["COMMBASE_APP_DIR"] + '/data/.data.dat'
-	PREV_DATA_FILE = os.environ["COMMBASE_APP_DIR"] + '/data/.prev_data.dat'
-	OUTPUT_HISTORY_FILE = os.environ["COMMBASE_APP_DIR"] + '/history/.app_history'
-
-	# String used to process the 'okay stop' control command
-	STOP_STR = "okay stop"
-
-	# q is used to store a Queue object, which is then used to keep track of the
-	# nodes that need to be visited during the breadth-first search algorithm.
-	q = queue.Queue()
+	global q
 
 	# Call commbase_stt_vosk_p
 	commbase_stt_vosk_p()
-	
+
 # Ensure that the main() function is executed only when the script is run
 # directly as the main program.
 if __name__ == '__main__':

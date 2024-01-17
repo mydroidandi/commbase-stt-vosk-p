@@ -1,10 +1,10 @@
 ################################################################################
-#                               commbase-stt-vosk                              #
+#                              commbase-stt-vosk-p                             #
 #                                                                              #
-# Conversational AI Assistant and AI Hub for Computers and Droids              #
+# An ASR (Automatic Speech Recognition) engine.                                #
 #                                                                              #
 # Change History                                                               #
-# 05/20/2023  Esteban Herrera Original code.                                   #
+# 04/29/2023  Esteban Herrera Original code.                                   #
 #                           Add new history entries as needed.                 #
 #                                                                              #
 #                                                                              #
@@ -38,5 +38,4 @@ import os
 
 # The path to the .env configuration file
 CONFIG_FILE_DIR = os.environ["COMMBASE_APP_DIR"]
-CONFIG_FILE_PATH = os.path.join(CONFIG_FILE_DIR, 'config/app.conf')
-
+CONFIG_FILE_PATH = os.path.join(CONFIG_FILE_DIR, "config/app.conf")
